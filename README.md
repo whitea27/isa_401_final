@@ -16,7 +16,7 @@ That experience stuck with me. For this project, I wanted to revisit that idea a
 
 ## Data Sources
 
-To analyze customer sentiment, I needed a reliable source of restaurant reviews. I initially explored scraping platforms such as Google Reviews, OpenTable, and TripAdvisor, but ran into limitations related to access, structure, and scraping restrictions. Instead, I used the Yelp Open Dataset, which is designed for academic use. This dataset provides structured information including review text, timestamps, ratings, and business location data, making it ideal for joining with external data sources.
+To analyze customer sentiment, I needed a reliable source of restaurant reviews. I initially explored scraping platforms such as Google Reviews, OpenTable, and TripAdvisor, but ran into limitations related to access, structure, and scraping restrictions. Instead, I used the Yelp Open Review and Business Datasets, which are designed for academic use. These datasets provide structured information including review text, timestamps, ratings, and business location data, making it ideal for joining with external data sources.
 
 [Yelp Reviews Open Dataset](https://business.yelp.com/data/resources/open-dataset/)
 
