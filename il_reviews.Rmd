@@ -1,0 +1,37 @@
+---
+title: "Yelp Reviews"
+author: "Amanda White"
+date: "2026-04-24"
+output: html_document
+---
+
+```{r}
+#Takes 1.5 hours to run, reading in ~7 million rows of reviews
+reviews <- jsonlite::stream_in(file("/Users/amandawhite/Downloads/Yelp JSON/yelp_dataset/yelp_academic_dataset_review.json"))
+
+#Reading in businesses data to connect locations
+businesses <- jsonlite::stream_in(file("/Users/amandawhite/Downloads/Yelp JSON/yelp_dataset/yelp_academic_dataset_business.json"))
+```
+
+```{r}
+#Examining how many from each state
+table(businesses$state)
+
+#Filtering to just Illinois because that is the most "goldilocks" size
+library(dplyr)
+businesses_IL <- businesses |>
+  filter(state == "IL")
+
+#Joining businesses and reviews
+IL_reviews <- reviews |>
+  inner_join(businesses_IL, by = "business_id")
+
+#Make dates YYYY-MM-DD rather than time stamp for easier joining
+IL_reviews <- IL_reviews |>
+  mutate(review_date = as.Date(date))
+```
+
+```{r}
+#Save to csv to avoid running again
+write.csv(IL_reviews, "IL_reviews_ISA401.csv", row.names = FALSE)
+```

@@ -1,0 +1,62 @@
+---
+title: "Moon"
+author: "Amanda White"
+date: "2026-04-24"
+output: html_document
+---
+
+# Moon Dataset 
+
+In order to be nice to the US Navy servers, I wanted to make a condensed version of dates to limit the number of API calls needed. So, I filtered the review dates to unique ones. I also filtered to have a 5 year window of reviews and used dates before Covid to control for any factors from the pandemic.
+
+```{r}
+#Reading in review dataset
+IL_reviews <- readr::read_csv("/Users/amandawhite/IL_reviews_ISA401.csv")
+
+#Get unique dates only for moon phase api
+unique_dates <- IL_reviews |>
+  distinct(review_date) |>
+  arrange(review_date)
+
+#5 years of data until Covid, didn't want Covid to interfere with results
+unique_dates_2015_2020 <- unique_dates |>
+  dplyr::filter(
+    review_date > as.Date("2015-03-01"),
+    review_date < as.Date("2020-03-01")
+  )
+
+write.csv(unique_dates_2015_2020, "unique_dates_ISA401.csv", row.names = FALSE)
+```
+
+
+```{r}
+library(jsonlite)
+library(purrr)
+library(dplyr)
+
+#Making moon phase function
+get_moon_phase <- function(x) {
+  moon_url <- paste0("https://aa.usno.navy.mil/api/moon/phases/date?ID=MiamiStudentAW&date=", x)
+  
+  moon <- jsonlite::fromJSON(moon_url)
+  
+  data.frame(
+    review_date = as.Date(x),
+    phase = moon$phasedata$phase[1]
+  )
+  
+}
+
+#Calling the function for all dates
+moon_df <- purrr::map_df(
+  .x = unique_dates_2015_2020$review_date,
+  .f = get_moon_phase
+)
+```
+
+```{r}
+#Saving file so I dont have to run it again
+write.csv(moon_df, "moon_df.csv", row.names = FALSE)
+```
+
+
