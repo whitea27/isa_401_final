@@ -28,7 +28,7 @@ Because external factors like weather can influence some people's mood, I includ
 
 [Open Meteo Historical Weather API](https://open-meteo.com/en/docs/historical-weather-api?hourly=&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=auto&temperature_unit=fahrenheit)
 
-Finally, to quantify customer sentiment from unstructured review text, I used the Ellmer R package to interface with a large language model. This allowed me to extract structured features such as sentiment (on a 1–10 scale) and a binary indicator for whether a review exhibited “kooky” or unusual behavior.
+Finally, to quantify customer sentiment from unstructured review text, I used the Ellmer R package to interface with a large language model. This allowed me to extract structured features such as sentiment (on a 1–5 scale) and a binary indicator for whether a review exhibited “kooky” or unusual behavior.
 
 [Structured Text Extraction Using Ellmer & ChatGPT](https://ellmer.tidyverse.org/)
 
@@ -42,7 +42,7 @@ To study the potential influence of lunar cycles, I filtered the dataset to incl
 
 Next, I incorporated weather data to control for environmental factors that may influence customer sentiment. To minimize redundant API calls, I created a set of unique combinations of latitude, longitude, and review date. I then built a function to query the Open Meteo Historical Weather API, retrieving daily maximum temperature, minimum temperature, and total precipitation for each location and date pair. Due to API rate limits, I implemented a short delay (Sys.sleep(0.12)) between requests and collected the data in batches. The resulting weather dataset was then joined back onto the review-level data using date and geographic coordinates.
 
-To extract meaningful insights from the unstructured review text, I used the Ellmer R package to perform structured sentiment analysis using a large language model. Each review was passed to the model with a prompt designed to return two specific outputs: a sentiment score on a 1–10 scale and a binary indicator capturing whether the review exhibited unusually erratic or “weird” behavior. This approach allowed me to transform qualitative text into quantitative features that could be analyzed alongside the moon phase and weather variables. 
+To extract meaningful insights from the unstructured review text, I used the Ellmer R package to perform structured sentiment analysis using a large language model. Each review was passed to the model with a prompt designed to return two specific outputs: a sentiment score on a 1–5 scale and a binary indicator capturing whether the review exhibited unusually erratic or “weird” behavior. This approach allowed me to transform qualitative text into quantitative features that could be analyzed alongside the moon phase and weather variables. 
 
 Finally, these steps resulted in a unified dataset containing review-level information enriched with both lunar phase, weather conditions, and sentiment analysis. This combined dataset serves as the foundation for analyzing whether external factors such as moon phases and weather patterns are associated with variations in customer sentiment and behavior.
 
