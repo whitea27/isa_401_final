@@ -1,0 +1,106 @@
+---
+title: "Ellmer"
+author: "Amanda White"
+date: "2026-04-25"
+output: html_document
+---
+
+I wanted to use structured text extraction to get some information out of the reviews. The Yelp Dataset already contained the number of stars the customer left, so normal sentiment analysis would not provide us with much more information. Instead, I passed the reviews to ChatGPT and asked it to rate the intensity of the review on a scale of 1-5, decide if there was "odd behavior" in the review, and if the review was negative give a reason with the options service, food, wait time, staff behavior, or other. 
+
+
+```{r}
+#Reading in reviews
+IL_reviews <- readr::read_csv("/Users/amandawhite/Downloads/IL_reviews15_20_ISA401_yes.csv")
+```
+
+```{r}
+#Not 100% sure if this is needed for ellmer, but this is what we did in class
+reviews <- as.list(IL_reviews$text)
+```
+
+
+
+```{r}
+#Chat object
+chat = ellmer::chat_openai(
+  model = "gpt-5-mini-2025-08-07"
+)
+
+#ellmer function
+type_reviewextract = ellmer::type_object(
+  review_intensity = ellmer::type_number(
+    description = "On a scale of 1–5, how emotionally intense is this review? (1 = not intense, 5 = very intense)"
+  ),
+  review_weird = ellmer::type_number(
+    description = "Does this review describe unusual, erratic, or socially abnormal behavior? (0 = no, 1 = yes)"
+  )
+)
+```
+
+```{r, eval=FALSE}
+#Have to run in chunks because it keeps erroring out
+review_STE <- ellmer::parallel_chat_structured(
+  chat,
+  reviews,
+  type = type_reviewextract,
+  on_error = "continue"
+)
+```
+
+```{r}
+# 9 rows failed, this is getting those indices
+failed_rows <- which(!sapply(review_STE$.error, is.null))
+```
+
+```{r}
+#Rerunning the failed rows
+review_retry <- ellmer::parallel_chat_structured(
+  chat,
+  reviews[failed_rows],
+  type = type_reviewextract
+)
+```
+
+```{r}
+# Adding an error column for joining
+review_retry$.error <- vector("list", nrow(review_retry))
+```
+
+```{r}
+# Joining the failed rows back in their original spots
+cols <- c("review_intensity", "review_weird")
+
+review_STE[failed_rows, cols] <- review_retry[, cols]
+```
+
+```{r}
+#Getting rid of error messages since we reran them
+review_STE$.error[failed_rows] <- vector("list", length(failed_rows))
+```
+
+```{r}
+# Now no errors!! Wooooo
+sum(!sapply(review_STE$.error, is.null))
+```
+
+```{r}
+# Getting rid of error column
+library(dplyr)
+
+review_STE <- review_STE |>
+  select(-.error)
+```
+
+
+```{r}
+#Adding the key back on
+library(dplyr)
+review_STE_df <- bind_cols(
+  IL_reviews |>
+    select(review_id), review_STE
+)
+```
+
+```{r}
+write.csv(review_STE_df, "reviews_STE.csv", row.names = FALSE)
+```

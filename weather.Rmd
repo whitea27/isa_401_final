@@ -1,0 +1,118 @@
+---
+title: "Weather"
+author: "Amanda White"
+date: "2026-04-07"
+output: html_document
+---
+
+Sometimes weather can have an effect on people's moods. In order to control for weather related factors I am working with the Open Meteo API to grab high and low temperatures and total precipitation. The data I am using is from Illinois, so the snow might make people more irritable than normal, which effects my analysis.
+
+
+```{r}
+#Reading in saved file
+IL_reviews <- readr::read_csv("/Users/amandawhite/Downloads/IL_reviews15_20_ISA401_yes.csv")
+```
+
+
+```{r}
+#Gathering unique locations and dates to call the weather api
+library(dplyr)
+weather_keys <- IL_reviews |>
+  distinct(latitude, longitude, review_date)
+```
+
+
+```{r}
+library(httr2)
+library(dplyr)
+library(jsonlite)
+
+#Weather function
+get_weather <- function(lat, lon, date) {
+  
+  #Used this to be nice and not hit the 600 calls/minute API limit
+  Sys.sleep(.12)
+  
+  url <- "https://archive-api.open-meteo.com/v1/archive"
+  
+  request <- request(url) |>
+    req_url_query(
+      latitude = lat,
+      longitude = lon,
+      start_date = date,
+      end_date = date,
+      daily = "temperature_2m_max,temperature_2m_min,precipitation_sum",
+      timezone = "auto",
+      temperature_unit = "fahrenheit"
+    )
+  
+  response <- request |> req_perform()
+  
+  data <- response |> resp_body_json()
+  
+  #Making data frame
+  tibble(
+    review_date = as.Date(date),
+    latitude = lat,
+    longitude = lon,
+    temp_max = data$daily$temperature_2m_max[[1]],
+    temp_min = data$daily$temperature_2m_min[[1]],
+    precipitation = data$daily$precipitation_sum[[1]]
+  )
+}
+
+```
+
+```{r}
+#Testing the function
+get_weather(
+  lat = il_reviews3$latitude[1],
+  lon = il_reviews3$longitude[1],
+  date = il_reviews3$review_date[1]
+)
+# IT WORKED!
+```
+
+I have to run this code chunk below in batches because of the API limits. I ran batches of 5000 calls twice a day (since the limit is 10000 calls/day and 5000 calls/hour). This is the final chunk, I would just adjust which rows I was calling.
+
+```{r}
+library(purrr)
+#Collecting the weather data
+weather_df7 <- map_df(
+  30000:30694,
+  ~ get_weather(
+      lat = weather_keys$latitude[.x],
+      lon = weather_keys$longitude[.x],
+      date = weather_keys$review_date[.x]
+    )
+)
+```
+
+```{r}
+write.csv(weather_df7, "weather_df7.csv", row.names = FALSE)
+```
+
+```{r}
+weather_df1 <- readr::read_csv("/Users/amandawhite/weather_df1.csv")
+weather_df2 <- readr::read_csv("/Users/amandawhite/weather_df2.csv")
+weather_df3 <- readr::read_csv("/Users/amandawhite/Downloads/weather_df3.csv")
+weather_df3.5 <- readr::read_csv("/Users/amandawhite/Downloads/weather_df3_5.csv")
+weather_df4 <- readr::read_csv("/Users/amandawhite/Downloads/weather_df4.csv")
+weather_df5 <- readr::read_csv("/Users/amandawhite/Downloads/weather_df5.csv")
+weather_df6 <- readr::read_csv("/Users/amandawhite/Downloads/weather_df6.csv")
+weather_df7 <- readr::read_csv("/Users/amandawhite/Downloads/weather_df7.csv")
+```
+
+```{r}
+#Making combined weather df
+weather_df <- dplyr::bind_rows(weather_df1, weather_df2, weather_df3, weather_df3.5, weather_df4, weather_df5, weather_df6, weather_df7)
+```
+
+```{r}
+#Making sure we got all of them
+nrow(weather_df)-nrow(weather_keys)
+```
+
+```{r}
+write.csv(weather_df, "weather_df_yes.csv", row.names = FALSE)
+```
