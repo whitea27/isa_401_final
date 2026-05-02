@@ -44,7 +44,9 @@ Next, I incorporated weather data to control for environmental factors that may 
 
 To extract meaningful insights from the unstructured review text, I used the Ellmer R package to perform structured sentiment analysis using a large language model. Each review was passed to the model with a prompt designed to return two specific outputs: a sentiment score on a 1–5 scale and a binary indicator capturing whether the review exhibited unusually erratic or “weird” behavior. This approach allowed me to transform qualitative text into quantitative features that could be analyzed alongside the moon phase and weather variables. [Ellmer Rmd](ellmer.Rmd)
 
-Finally, these steps resulted in a unified dataset containing review-level information enriched with both lunar phase, weather conditions, and sentiment analysis. This combined dataset serves as the foundation for analyzing whether external factors such as moon phases and weather patterns are associated with variations in customer sentiment and behavior.
+Finally, these steps resulted in a unified dataset containing review-level information enriched with both lunar phase, weather conditions, and sentiment analysis. This combined dataset serves as the foundation for analyzing whether external factors such as moon phases and weather patterns are associated with variations in customer sentiment and behavior. [Joined CSV](final_df_401.csv) 
+
+[Validation and Preliminary Testing Rmd](validationandtesting.Rmd)
 
 ---
 
