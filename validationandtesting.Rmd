@@ -1,0 +1,239 @@
+---
+title: "Validation and testing"
+author: "Amanda White"
+date: "2026-04-25"
+output: html_document
+---
+
+```{r}
+#Reading in saved files
+IL_reviews <- readr::read_csv("/Users/amandawhite/Downloads/IL_reviews15_20_ISA401_yes.csv")
+moon_df <- readr::read_csv("/Users/amandawhite/Downloads/moon_df_yes.csv")
+STE <- readr::read_csv("/Users/amandawhite/Downloads/reviews_STE.csv")
+weather_df <- readr::read_csv("/Users/amandawhite/Downloads/weather_df_yes.csv")
+```
+
+```{r}
+#Joining weather and reviews
+weather_review <- IL_reviews |>
+  left_join(weather_df, by = c("review_date", "latitude", "longitude"))
+```
+
+```{r}
+#Joining moon phases
+moon_weather_review <- weather_review |>
+  left_join(moon_df, by = "review_date")
+```
+
+```{r}
+#Joining STE
+final_df <- moon_weather_review |>
+  left_join(STE, by = "review_id")
+```
+
+```{r}
+#Renaming stars column for better data understanding
+final_df <- final_df |>
+  rename(
+    stars_review = stars.x,
+    stars_business = stars.y
+  )
+```
+
+```{r}
+# Checking for duplicates
+final_df |>
+  count(review_id) |>
+  filter(n > 1)
+```
+None! Yay
+
+```{r}
+# Check for missing
+colSums(is.na(final_df))
+```
+No missing in important columns
+
+
+```{r}
+write.csv(final_df, "final_df_401.csv", row.names = FALSE)
+```
+
+
+```{r}
+final_df <- readr::read_csv("/Users/amandawhite/Downloads/final_df_401.csv")
+```
+
+
+```{r}
+# Summary statistics
+library(tidyverse)
+final_df |>
+  group_by(phase) |>
+  summarise(
+    proportion = mean(review_weird, na.rm = TRUE),
+    weird_count = sum(review_weird, na.rm = TRUE),
+    total = n()
+  )
+```
+
+```{r}
+# Testing significance of moon phase and weird reviews
+tab <- table(final_df$phase, final_df$review_weird)
+chisq.test(tab)
+```
+Not significant :(
+
+```{r}
+# Testing significance of moon phase and stars
+anova <- aov(stars_review~phase, data = final_df)
+summary(anova)
+```
+
+Not significant :(
+
+```{r}
+# Testing significance of moon phase and review intensity
+anova1 <- aov(review_intensity~phase, data = final_df)
+summary(anova1)
+```
+Wooo significant, so let's take a further look using Tukey's test
+
+```{r}
+TukeyHSD(anova1)
+```
+
+Statistical difference between New moon and Full Moon, and New Moon and Last Quarter (at alpha = .1) with New Moon having less intense reviews for both.
+
+```{r}
+# Seeing if there are some businesses that don't have a lot of reviews and a few were classified as "weird"
+final_df |>
+  group_by(phase, business_id) |>
+  summarise(
+    proportion = mean(review_weird, na.rm = TRUE),
+    count = n(),
+    .groups = "drop"
+  ) |>
+  filter(proportion > 0.2, count < 10)
+```
+
+This is mildly concerning. It might be altering my results that 682 businesses don't have enough reviews to balance out the one's classified as weird.
+
+
+## Let's look to see if precipitation makes any difference
+
+```{r}
+t.test(precipitation ~ review_weird, data = final_df)
+```
+Not significant
+
+```{r}
+mod <- lm(stars_review ~ precipitation, data = final_df)
+summary(mod)
+```
+Not significant
+
+
+```{r}
+mod1 <- lm(review_intensity ~ precipitation, data = final_df)
+summary(mod1)
+```
+ Not significant
+
+
+```{r}
+# Maybe a discrete variable will show significance?
+final_df <- final_df |>
+  dplyr::mutate(
+    rain = ifelse(precipitation > 0, 1, 0)
+  )
+```
+
+```{r}
+final_df |>
+  group_by(rain) |>
+  summarise(
+    avg_stars = mean(stars_review, na.rm = TRUE),
+    count = n()
+  )
+```
+
+
+```{r}
+t.test(stars_review ~ rain, data = final_df)
+```
+
+Very interesting that when there is precipitation reviews are more positive. 
+
+
+```{r}
+t.test(review_intensity ~ rain, data = final_df)
+```
+But, reviews are not more intense.
+
+```{r}
+tab1 <- table(final_df$rain, final_df$review_weird)
+chisq.test(tab1)
+```
+And not more weird.
+
+## Now let's look at moon phase and rain
+
+```{r}
+mod1 <- lm(stars_review~rain + phase, data = final_df)
+summary(mod1)
+```
+Rain is still significant
+
+```{r}
+#Checking interaction between moon and rain
+mod2 <- lm(stars_review~rain * phase, data = final_df)
+summary(mod2)
+```
+
+Well, looks like there is no significance of rain across moon phases, or at all. The effect was likely noise and should not be read into. 
+
+
+```{r}
+#Just to be sure
+mod3 <- lm(stars_review~precipitation * phase, data = final_df)
+summary(mod3)
+```
+Matches up.
+
+
+## Lets check the interactions on review intensity
+
+```{r}
+mod3 <- lm(review_intensity~rain * phase, data = final_df)
+summary(mod3)
+```
+
+Slight interaction on rain:FullMoon, but probably noise.
+
+```{r}
+mod4 <- lm(review_intensity~precipitation * phase, data = final_df)
+summary(mod4)
+```
+
+Now this is interesting. 
+
+## Trying for weird reviews
+
+```{r}
+mod5 <- glm(review_weird ~ precipitation * phase, 
+    data = final_df, 
+    family = "binomial")
+summary(mod5)
+```
+Nothing.
+
+
+```{r}
+mod6 <- glm(review_weird ~ rain * phase, 
+    data = final_df, 
+    family = "binomial")
+summary(mod6)
+```
+
+Nothing here either.
