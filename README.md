@@ -58,4 +58,4 @@ Finally, these steps resulted in a unified dataset containing review-level infor
 
 ## Technical Presentation
 
-[Technical Presentation - Youtube](https: Youtube)
+[Technical Presentation - Youtube](https://youtu.be/A1TtURBKXFA)
