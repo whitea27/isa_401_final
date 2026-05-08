@@ -52,7 +52,7 @@ Finally, these steps resulted in a unified dataset containing review-level infor
 
 ## Tableau Dashboard
 
-[Public Dashboard](https:dashboard link)
+[Public Dashboard Link](https://public.tableau.com/app/profile/amanda.white1300/viz/ExploringCustomerLunacy/ExploringCustomerLunacy)
 
 ---
 
