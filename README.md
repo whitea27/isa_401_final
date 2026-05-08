@@ -1,6 +1,7 @@
 
 # Exploration of Customer Lunacy Across Moon Phases
 ## ISA 401 Final Project
+### By Amanda White
 
 This repository contains the work for my final project for ISA 401, a data visualization and business intelligence course at Miami University.
 
