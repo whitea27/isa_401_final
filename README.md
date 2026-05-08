@@ -10,7 +10,7 @@ This repository contains the work for my final project for ISA 401, a data visua
 
 Back in high school, I worked as a server at a family-owned restaurant. There were several nights when my coworkers and I noticed that our tables felt a little more unpredictable than usual. One of my coworkers, Sonya, would always say, “It must be a full moon tonight.” Out of curiosity, I started checking, and surprisingly she was sometimes right.
 
-That experience stuck with me. For this project, I wanted to revisit that idea and explore it more systematically. Specifically, I set out to determine whether there is any measurable relationship between lunar phases and customer behavior.
+That experience stuck with me. For this project, I wanted to revisit that idea and explore it more systematically. Specifically, I set out to determine whether there is any measurable relationship between lunar phases and customer behavior. If I can prove there is a correlation between moon phases and customer behavior, customer service workers could plan and prepare for their "kooky" customers.
 
 ---
 
